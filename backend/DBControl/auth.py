@@ -64,7 +64,7 @@ def get_password_hash(password):
 #     return {"message": "User created successfully", "status": 201}
 
 
-def authenticate_user(db: Session, UserID: str, Password: str):
+def authenticate_user(db: Session, UserID: int, Password: str):
     mymodel = models.User
     stmt = select(mymodel).where(mymodel.UserID == UserID)
 
@@ -127,7 +127,7 @@ def get_db():
 # トークン取得エンドポイント
 @router.post("/token", response_model=schemas.Token)
 async def login_for_access_token(form_data: schemas.UserPass, db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.UserID, form_data.Pass)  # OAuth2PasswordRequestFormは、username, passwordをキーとして持つ形式らしい
+    user = authenticate_user(db, form_data.UserID, form_data.Password)  # OAuth2PasswordRequestFormは、username, passwordをキーとして持つ形式らしい
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

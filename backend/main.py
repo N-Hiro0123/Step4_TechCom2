@@ -12,7 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from DBControl import models, schemas, database
 from typing import List
 
+from DBControl.auth import router as auth_router, get_current_user
+
 app = FastAPI()
+
+# ルーターのインクルード
+app.include_router(auth_router)
 
 # CORSの設定
 origins = [

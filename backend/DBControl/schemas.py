@@ -111,5 +111,5 @@ class TokenData(BaseModel):
 
 
 class UserPass(BaseModel):
-    UserID: str
+    UserID: int
     Password: str
