@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date
 
+
 class UserBase(BaseModel):
     EmployeeCode: str
     LastName: str
@@ -13,8 +14,10 @@ class UserBase(BaseModel):
     EmploymentTypeID: int
     JoinDate: date
 
+
 class UserCreate(UserBase):
     Password: str
+
 
 class User(UserBase):
     UserID: int
@@ -25,6 +28,7 @@ class User(UserBase):
 
 class DepartmentBase(BaseModel):
     DepartmentName: str
+
 
 class Department(DepartmentBase):
     DepartmentID: int
@@ -37,6 +41,7 @@ class Department(DepartmentBase):
 class PositionBase(BaseModel):
     PositionName: str
 
+
 class Position(PositionBase):
     PositionID: int
     users: list[User] = []
@@ -47,6 +52,7 @@ class Position(PositionBase):
 
 class GenderBase(BaseModel):
     GenderName: str
+
 
 class Gender(GenderBase):
     GenderID: int
@@ -59,6 +65,7 @@ class Gender(GenderBase):
 class EmploymentTypeBase(BaseModel):
     EmploymentTypeName: str
 
+
 class EmploymentType(EmploymentTypeBase):
     EmploymentTypeID: int
     users: list[User] = []
@@ -70,9 +77,24 @@ class EmploymentType(EmploymentTypeBase):
 class RoleBase(BaseModel):
     RoleName: str
 
+
 class Role(RoleBase):
     RoleID: int
     users: list[User] = []
+
+    class Config:
+        orm_mode = True
+
+
+class UserDisplay(BaseModel):
+    UserID: int
+    EmployeeCode: str
+    DepartmentName: str
+    LastName: str
+    FirstName: str
+    GenderName: str
+    RoleName: str
+    EmploymentTypeName: str
 
     class Config:
         orm_mode = True
