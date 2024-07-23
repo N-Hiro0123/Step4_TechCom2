@@ -28,7 +28,8 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_ENDPOINT + `/token`,
+        "http://127.0.0.1:8000/token",
+        // process.env.NEXT_PUBLIC_API_ENDPOINT + `/token`,
         {
           method: "POST",
           headers: {
