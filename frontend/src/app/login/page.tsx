@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
   const [UserID, setUserID] = useState("");
@@ -44,8 +45,17 @@ const Login = () => {
 
       if (response.status === 200) {
         const data = await response.json();
-        localStorage.setItem("token", data["access_token"]); // JWTをローカルストレージに保存
-        router.push("/admin/users"); // ユーザー一覧のページへリダイレクト
+        const token = data["access_token"];
+        localStorage.setItem("token", token); // JWTをローカルストレージに保存
+
+        // JWTをデコードしてRoleIDを取得
+        const decodedToken = jwtDecode(token);
+        // 管理者（RoleID=1)を確認して遷移
+        if (decodedToken.RoleID === "1") {
+          router.push("/admin/users"); // ユーザー一覧のページへリダイレクト
+        } else {
+          alert("管理者権限がありません");
+        }
       } else {
         alert("ログインに失敗しました");
       }
