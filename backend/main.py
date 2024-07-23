@@ -5,7 +5,9 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'DBControl')))
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
+from sqlalchemy import func, text
+from sqlalchemy.dialects import sqlite
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from fastapi.middleware.cors import CORSMiddleware
@@ -105,12 +107,45 @@ def get_users(db: Session = Depends(get_db)):
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# 従業員検索用エンドポイント
+@app.get("/admin/users/search", response_model=List[schemas.UserDisplay])
+def search_users(
+    EmployeeCode: str = Query(None),
+    Name: str = Query(None),
+    RoleName: str = Query(None),
+    EmploymentTypeName: str = Query(None),
+    db: Session = Depends(get_db)
+):
+    try:
+        query = db.query(
+            models.User.UserID,
+            models.User.EmployeeCode,
+            models.Department.DepartmentName,
+            models.User.LastName,
+            models.User.FirstName,
+            models.Gender.GenderName,
+            models.Role.RoleName,
+            models.EmploymentType.EmploymentTypeName,
+        ).join(models.Department, models.User.DepartmentID == models.Department.DepartmentID
+        ).join(models.Gender, models.User.GenderID == models.Gender.GenderID
+        ).join(models.Role, models.User.RoleID == models.Role.RoleID
+        ).join(models.EmploymentType, models.User.EmploymentTypeID == models.EmploymentType.EmploymentTypeID)
 
-# デバッグ用
-from sqlalchemy import text
+        if EmployeeCode:
+            query = query.filter(models.User.EmployeeCode.contains(EmployeeCode))
+        if Name:
+            name_filter_with_space = f"%{' '.join(Name)}%"
+            name_filter_without_space = f"%{Name}%"
+            query = query.filter(
+                text("lower(users.\"LastName\" || ' ' || users.\"FirstName\") LIKE lower(:name_with_space) OR lower(users.\"LastName\" || users.\"FirstName\") LIKE lower(:name_without_space)")
+            ).params(name_with_space=name_filter_with_space, name_without_space=name_filter_without_space)
+        if RoleName:
+            query = query.filter(models.Role.RoleName.contains(RoleName))
+        if EmploymentTypeName:
+            query = query.filter(models.EmploymentType.EmploymentTypeName.contains(EmploymentTypeName))
 
-
-@app.get("/tables")
-def get_tables(db: Session = Depends(get_db)):
-    tables = db.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
-    return {"tables": [table[0] for table in tables]}
+        users = query.all()
+        return users
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
