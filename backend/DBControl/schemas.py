@@ -98,3 +98,18 @@ class UserDisplay(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    UserID: int
+    RoleID: int
+
+
+class UserPass(BaseModel):
+    UserID: int
+    Password: str
