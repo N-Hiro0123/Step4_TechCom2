@@ -3,6 +3,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
+// JWTのペイロードに含まれる情報の型を定義
+interface DecodedToken {
+  UserID: string;
+  RoleID: string;
+}
+
 const Login = () => {
   const [UserID, setUserID] = useState("");
   const [Password, setPassword] = useState("");
@@ -49,7 +55,7 @@ const Login = () => {
         localStorage.setItem("token", token); // JWTをローカルストレージに保存
 
         // JWTをデコードしてRoleIDを取得
-        const decodedToken = jwtDecode(token);
+        const decodedToken = jwtDecode<DecodedToken>(token); //DcodedTokenの型を指定
         // 管理者（RoleID=1)を確認して遷移
         if (decodedToken.RoleID === "1") {
           router.push("/admin/users"); // ユーザー一覧のページへリダイレクト
