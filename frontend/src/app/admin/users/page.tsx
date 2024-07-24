@@ -1,13 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import Modal from "react-modal";
 import { ToastContainer, toast, Slide } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-
-// setAppElementをdocument.bodyに設定
-if (typeof window !== "undefined") {
-  Modal.setAppElement(document.body);
-}
 
 interface User {
   UserID: number;
