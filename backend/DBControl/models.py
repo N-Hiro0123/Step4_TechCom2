@@ -19,11 +19,11 @@ class User(Base):
     EmploymentTypeID = Column(Integer, ForeignKey('employmenttypes.EmploymentTypeID'))
     JoinDate = Column(Date)
 
-    roles = relationship("Role", back_populates="users")
-    genders = relationship("Gender", back_populates="users")
-    departments = relationship("Department", back_populates="users")
-    positions = relationship("Position", back_populates="users")
-    employmenttypes = relationship("EmploymentType", back_populates="users")
+    role = relationship("Role", back_populates="users")
+    gender = relationship("Gender", back_populates="users")
+    department = relationship("Department", back_populates="users")
+    position = relationship("Position", back_populates="users")
+    employment_type = relationship("EmploymentType", back_populates="users")
 
 
 class Department(Base):
@@ -32,7 +32,7 @@ class Department(Base):
     DepartmentID = Column(Integer, primary_key=True, index=True)
     DepartmentName = Column(String(100))
 
-    users = relationship("User", back_populates="departments")
+    users = relationship("User", back_populates="department")
 
 
 class Position(Base):
@@ -41,7 +41,7 @@ class Position(Base):
     PositionID = Column(Integer, primary_key=True, index=True)
     PositionName = Column(String(100))
 
-    users = relationship("User", back_populates="positions")
+    users = relationship("User", back_populates="position")
 
 
 class Gender(Base):
@@ -50,7 +50,7 @@ class Gender(Base):
     GenderID = Column(Integer, primary_key=True, index=True)
     GenderName = Column(String(10))
 
-    users = relationship("User", back_populates="genders")
+    users = relationship("User", back_populates="gender")
 
 
 class EmploymentType(Base):
@@ -59,7 +59,7 @@ class EmploymentType(Base):
     EmploymentTypeID = Column(Integer, primary_key=True, index=True)
     EmploymentTypeName = Column(String(50))
 
-    users = relationship("User", back_populates="employmenttypes")
+    users = relationship("User", back_populates="employment_type")
 
 
 class Role(Base):
@@ -68,4 +68,4 @@ class Role(Base):
     RoleID = Column(Integer, primary_key=True, index=True)
     RoleName = Column(String(50))
 
-    users = relationship("User", back_populates="roles")
+    users = relationship("User", back_populates="role")
