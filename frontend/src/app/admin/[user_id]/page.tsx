@@ -168,7 +168,7 @@ const UserDetail = () => {
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.GenderID}
-                        onChange={(e) => setUser({ ...user, GenderID: Number(e.target.value) })}
+                        onChange={(e) => setUser({ ...user, GenderID: String(e.target.value) })}
                       >
                         {Object.entries(genderIDMap).map(([id, name]) => (
                           <option key={id} value={id}>
