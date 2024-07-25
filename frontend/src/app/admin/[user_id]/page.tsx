@@ -6,6 +6,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { fetchUser } from "./getUser";
 import { fetchTableInfo } from "./getTableInfo";
+import { mappingValue2Key } from "./reverseMapping";
+import { fetchUpdateUser } from "./updateUser";
 
 interface User {
   UserID: number;
@@ -19,11 +21,11 @@ interface User {
   DateOfBirth: string;
   JoinDate: string;
   PositionName: string;
-  GenderID: number; // 追加
-  RoleID: number; // 追加
-  DepartmentID: number; // 追加
-  PositionID: number; // 追加
-  EmploymentTypeID: number; // 追加
+  GenderID: string; // 追加
+  RoleID: string; // 追加
+  DepartmentID: string; // 追加
+  PositionID: string; // 追加
+  EmploymentTypeID: string; // 追加
 }
 
 const UserDetail = () => {
@@ -37,42 +39,10 @@ const UserDetail = () => {
   const [depertmentIDMap, setDepertmentIDMap] = useState<{ [key: string]: string }>({});
   const [positionIDMap, setPositionIDMap] = useState<{ [key: string]: string }>({});
   const [employmentTypeIDMap, setEmploymentTypeIDMap] = useState<{ [key: string]: string }>({});
+  const [isLoadingMap, setIsLoadingMap] = useState(false);
 
-  // const getValueByKey = (mapping: { [key: string]: string }, key: string, defaultValue: string = "Unknown"): string => {
-  //   return mapping[key] || defaultValue;
-  // };
-
-  const getKeyByValue = (mapping: { [key: string]: string }, value: string, defaultKey: string = "Unknown"): string => {
-    for (const [key, val] of Object.entries(mapping)) {
-      if (val === value) {
-        return key;
-      }
-    }
-    return defaultKey;
-  };
-
+  // 各テーブル情報を取得する
   useEffect(() => {
-    if (user_id) {
-      fetchUser(user_id)
-        .then((data) => {
-          const updatedUser = {
-            ...data,
-            GenderID: getKeyByValue(genderIDMap, data.GenderName),
-            RoleID: getKeyByValue(roleIDMap, data.RoleName),
-            DepartmentID: getKeyByValue(depertmentIDMap, data.DepartmentName),
-            PositionID: getKeyByValue(positionIDMap, data.PositionName),
-            EmploymentTypeID: getKeyByValue(employmentTypeIDMap, data.EmploymentTypeName),
-          };
-          setUser(updatedUser);
-          console.log(data);
-        })
-        .catch((error) => console.error("Error fetching user:", error))
-        .finally(() => setIsLoading(false));
-    }
-  }, []);
-
-  useEffect(() => {
-    // バックエンドからJSONデータを取得（ここではfetchを使用）
     fetchTableInfo("genders").then((data) => {
       setGenderIDMap(data);
     });
@@ -90,7 +60,40 @@ const UserDetail = () => {
     });
   }, []);
 
-  const handleSave = () => {
+  // すべてのテーブル情報を取得できたことを確認する
+  useEffect(() => {
+    if (
+      Object.keys(genderIDMap).length > 0 &&
+      Object.keys(roleIDMap).length > 0 &&
+      Object.keys(depertmentIDMap).length > 0 &&
+      Object.keys(positionIDMap).length > 0 &&
+      Object.keys(employmentTypeIDMap).length > 0
+    ) {
+      setIsLoadingMap(true);
+    }
+  }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
+
+  // すべてのテーブル情報を取得を確認後に、表示に必要なデータを取得する
+  useEffect(() => {
+    if (user_id) {
+      fetchUser(user_id)
+        .then((data) => {
+          const updatedUser = {
+            ...data,
+            GenderID: mappingValue2Key(genderIDMap, data.GenderName),
+            RoleID: mappingValue2Key(roleIDMap, data.RoleName),
+            DepartmentID: mappingValue2Key(depertmentIDMap, data.DepartmentName),
+            PositionID: mappingValue2Key(positionIDMap, data.PositionName),
+            EmploymentTypeID: mappingValue2Key(employmentTypeIDMap, data.EmploymentTypeName),
+          };
+          setUser(updatedUser);
+        })
+        .catch((error) => console.error("Error fetching user:", error))
+        .finally(() => setIsLoading(false));
+    }
+  }, [isLoadingMap]);
+
+  const handleSave = async () => {
     if (user) {
       const updateUser = {
         LastName: user.LastName,
@@ -103,32 +106,16 @@ const UserDetail = () => {
         PositionID: user.PositionID,
         EmploymentTypeID: user.EmploymentTypeID,
       };
-      console.log(user);
-
-      fetch(`http://127.0.0.1:8000/admin/users/${user.UserID}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateUser),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setUser(data);
-          toast.success("更新が完了しました", {
-            autoClose: 3000,
-            onClose: () => router.push("/admin/users"),
-          });
-        })
-        .catch((error) => {
-          console.error("Error updating user:", error);
-          toast.error("保存に失敗しました");
+      try {
+        const updatedUser = await fetchUpdateUser(user.UserID, updateUser);
+        setUser(updatedUser);
+        toast.success("更新が完了しました", {
+          autoClose: 3000,
+          onClose: () => router.push("/admin/users"),
         });
+      } catch (error) {
+        toast.error("保存に失敗しました");
+      }
     }
   };
 
@@ -197,7 +184,7 @@ const UserDetail = () => {
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.RoleID}
-                        onChange={(e) => setUser({ ...user, RoleID: Number(e.target.value) })}
+                        onChange={(e) => setUser({ ...user, RoleID: String(e.target.value) })}
                       >
                         {Object.entries(roleIDMap).map(([id, name]) => (
                           <option key={id} value={id}>
@@ -216,7 +203,7 @@ const UserDetail = () => {
                         onChange={(e) =>
                           setUser({
                             ...user,
-                            DepartmentID: Number(e.target.value),
+                            DepartmentID: String(e.target.value),
                           })
                         }
                       >
@@ -237,7 +224,7 @@ const UserDetail = () => {
                         onChange={(e) =>
                           setUser({
                             ...user,
-                            PositionID: Number(e.target.value),
+                            PositionID: String(e.target.value),
                           })
                         }
                       >
@@ -258,7 +245,7 @@ const UserDetail = () => {
                         onChange={(e) =>
                           setUser({
                             ...user,
-                            EmploymentTypeID: Number(e.target.value),
+                            EmploymentTypeID: String(e.target.value),
                           })
                         }
                       >
