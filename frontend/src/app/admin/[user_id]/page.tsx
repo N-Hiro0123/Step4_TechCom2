@@ -1,7 +1,7 @@
 "use client"; // 追加
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation"; // 修正
+import { useRouter, useParams } from "next/navigation"; // 修正
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -26,13 +26,12 @@ interface User {
 
 const UserDetail = () => {
   const router = useRouter();
-  const pathname = usePathname();
-  const user_id = pathname.split("/")[2]; // URL から user_id を取得
+  const params = useParams();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user_id) {
+    if (params.user_id) {
       fetch(`http://127.0.0.1:8000/admin/users/${user_id}`)
         .then((response) => response.json())
         .then((data) => {
@@ -42,14 +41,14 @@ const UserDetail = () => {
             RoleID: getRoleID(data.RoleName),
             DepartmentID: getDepartmentID(data.DepartmentName),
             PositionID: getPositionID(data.PositionName),
-            EmploymentTypeID: getEmploymentTypeID(data.EmploymentTypeName)
+            EmploymentTypeID: getEmploymentTypeID(data.EmploymentTypeName),
           };
           setUser(updatedUser);
         })
         .catch((error) => console.error("Error fetching user:", error))
         .finally(() => setIsLoading(false));
     }
-  }, [user_id]);
+  }, []);
 
   const getGenderID = (genderName: string): number => {
     switch (genderName) {
@@ -183,7 +182,7 @@ const UserDetail = () => {
           setUser(data);
           toast.success("更新が完了しました", {
             autoClose: 3000,
-            onClose: () => router.push("/admin/users")
+            onClose: () => router.push("/admin/users"),
           });
         })
         .catch((error) => {
@@ -207,42 +206,62 @@ const UserDetail = () => {
               <table className="table w-full border-collapse border border-gray-300">
                 <tbody>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">ID</td>
-                    <td className="border border-gray-300 bg-gray-200 p-2">{user.UserID}</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      ID
+                    </td>
+                    <td className="border border-gray-300 bg-gray-200 p-2">
+                      {user.UserID}
+                    </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">社員番号</td>
-                    <td className="border border-gray-300 bg-gray-200 p-2">{user.EmployeeCode}</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      社員番号
+                    </td>
+                    <td className="border border-gray-300 bg-gray-200 p-2">
+                      {user.EmployeeCode}
+                    </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">姓</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      姓
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <input
                         type="text"
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.LastName}
-                        onChange={(e) => setUser({ ...user, LastName: e.target.value })}
+                        onChange={(e) =>
+                          setUser({ ...user, LastName: e.target.value })
+                        }
                       />
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">名</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      名
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <input
                         type="text"
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.FirstName}
-                        onChange={(e) => setUser({ ...user, FirstName: e.target.value })}
+                        onChange={(e) =>
+                          setUser({ ...user, FirstName: e.target.value })
+                        }
                       />
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">性別</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      性別
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.GenderID}
-                        onChange={(e) => setUser({ ...user, GenderID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({ ...user, GenderID: Number(e.target.value) })
+                        }
                       >
                         <option value="1">男性</option>
                         <option value="2">女性</option>
@@ -251,12 +270,16 @@ const UserDetail = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">ロール</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      ロール
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.RoleID}
-                        onChange={(e) => setUser({ ...user, RoleID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({ ...user, RoleID: Number(e.target.value) })
+                        }
                       >
                         <option value="1">管理者</option>
                         <option value="2">メンター</option>
@@ -268,12 +291,19 @@ const UserDetail = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">部署</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      部署
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.DepartmentID}
-                        onChange={(e) => setUser({ ...user, DepartmentID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({
+                            ...user,
+                            DepartmentID: Number(e.target.value),
+                          })
+                        }
                       >
                         <option value="1">セールス</option>
                         <option value="2">マーケティング</option>
@@ -288,12 +318,19 @@ const UserDetail = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">役職</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      役職
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.PositionID}
-                        onChange={(e) => setUser({ ...user, PositionID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({
+                            ...user,
+                            PositionID: Number(e.target.value),
+                          })
+                        }
                       >
                         <option value="1">一般</option>
                         <option value="2">主任</option>
@@ -307,12 +344,19 @@ const UserDetail = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">雇用形態</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      雇用形態
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.EmploymentTypeID}
-                        onChange={(e) => setUser({ ...user, EmploymentTypeID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({
+                            ...user,
+                            EmploymentTypeID: Number(e.target.value),
+                          })
+                        }
                       >
                         <option value="1">正社員</option>
                         <option value="2">契約社員</option>
@@ -325,7 +369,9 @@ const UserDetail = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">生年月日</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      生年月日
+                    </td>
                     <td className="border border-gray-300 p-2 bg-gray-200">
                       <input
                         type="date"
@@ -336,7 +382,9 @@ const UserDetail = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">入社日</td>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">
+                      入社日
+                    </td>
                     <td className="border border-gray-300 p-2 bg-gray-200">
                       <input
                         type="date"
