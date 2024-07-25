@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Modal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -19,6 +18,9 @@ interface User {
   PositionName: string;
 }
 
+// 一覧表の1ページ当たりの表示行数
+const USERS_PER_PAGE = 15;
+
 export default function Users() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
@@ -31,6 +33,7 @@ export default function Users() {
     positionName: "",
     employmentTypeName: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/admin/users")
@@ -88,31 +91,42 @@ export default function Users() {
       .catch((error) => console.error("Error fetching users:", error));
   };
 
+  const handlePageChange = (pageNumber: number): void => {
+    setCurrentPage(pageNumber);
+  };
+
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * USERS_PER_PAGE,
+    currentPage * USERS_PER_PAGE
+  );
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
+  const totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="min-h-screen bg-gray-200 p-4">
       <ToastContainer />
-      <div className="flex mb-4">
-        <div className="w-1/4 p-4">
+      <div className="flex flex-col lg:flex-row mb-4">
+        <div className="w-full lg:w-1/4 p-4 mt-10">
           <input
             type="text"
             placeholder="社員番号"
-            className="w-full mb-2 p-2 border border-gray-300 text-gray-700"
+            className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={searchParams.employeeCode}
             onChange={(e) => setSearchParams({ ...searchParams, employeeCode: e.target.value })}
           />
           <input
             type="text"
             placeholder="氏名"
-            className="w-full mb-2 p-2 border border-gray-300 text-gray-700"
+            className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={searchParams.name}
             onChange={(e) => setSearchParams({ ...searchParams, name: e.target.value })}
           />
           <select
-            className="w-full mb-2 p-2 border border-gray-300 text-gray-700"
+            className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={searchParams.roleName}
             onChange={(e) => setSearchParams({ ...searchParams, roleName: e.target.value })}
           >
@@ -125,7 +139,7 @@ export default function Users() {
             <option value="人事">人事</option>
           </select>
           <select
-            className="w-full mb-2 p-2 border border-gray-300 text-gray-700"
+            className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={searchParams.departmentName}
             onChange={(e) => setSearchParams({ ...searchParams, departmentName: e.target.value })}
           >
@@ -141,7 +155,7 @@ export default function Users() {
             <option value="その他">その他</option>
           </select>
           <select
-            className="w-full mb-2 p-2 border border-gray-300 text-gray-700"
+            className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={searchParams.positionName}
             onChange={(e) => setSearchParams({ ...searchParams, positionName: e.target.value })}
           >
@@ -156,7 +170,7 @@ export default function Users() {
             <option value="その他">その他</option>
           </select>
           <select
-            className="w-full mb-2 p-2 border border-gray-300 text-gray-700"
+            className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={searchParams.employmentTypeName}
             onChange={(e) => setSearchParams({ ...searchParams, employmentTypeName: e.target.value })}
           >
@@ -171,24 +185,24 @@ export default function Users() {
           </select>
           <div className="flex justify-between">
             <button
-              className="w-1/2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
               onClick={handleSearch}
             >
               検索
             </button>
             <button
-              className="w-1/2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2"
+              className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               onClick={handleResetSearch}
             >
               全従業員を表示
             </button>
           </div>
         </div>
-        <div className="w-3/4 p-4">
+        <div className="w-full lg:w-3/4 p-4 mt-5">
           <div className="overflow-x-auto">
-            <table className="table w-full border-collapse border border-gray-300">
+            <table className="table w-full border-collapse border border-gray-300 bg-white">
               <thead>
-                <tr className="bg-gray-200">
+                <tr className="bg-gray-500 text-gray-200">
                   <th className="border border-gray-300 p-2 w-12">ID</th>
                   <th className="border border-gray-300 p-2">社員番号</th>
                   <th className="border border-gray-300 p-2">姓</th>
@@ -203,7 +217,7 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
+                {paginatedUsers.map((user) => (
                   <tr
                     key={user.UserID}
                     className="hover:bg-gray-100 cursor-pointer"
@@ -224,6 +238,17 @@ export default function Users() {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="flex justify-center mt-4">
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index}
+                className={`px-4 py-2 mx-1 border rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'}`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
           </div>
         </div>
       </div>

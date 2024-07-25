@@ -201,44 +201,6 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         logger.error(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# 表が表示されない問題用
-from sqlalchemy.orm import joinedload
-
-@app.get("/admin/users/test/{user_id}", response_model=schemas.UserDisplay)
-def get_user_test(user_id: int, db: Session = Depends(get_db)):
-    try:
-        user = db.query(models.User).options(
-            joinedload(models.User.gender),
-            joinedload(models.User.role),
-            joinedload(models.User.department),
-            joinedload(models.User.position),
-            joinedload(models.User.employment_type)
-        ).filter(models.User.UserID == user_id).first()
-        
-        if user is None:
-            logger.info(f"User with ID {user_id} not found")  # デバッグ用のログ
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        # 必要なフィールドを手動で作成
-        response_user = schemas.UserDisplay(
-            UserID=user.UserID,
-            EmployeeCode=user.EmployeeCode,
-            LastName=user.LastName,
-            FirstName=user.FirstName,
-            DateOfBirth=user.DateOfBirth,
-            JoinDate=user.JoinDate,
-            GenderName=user.gender.GenderName if user.gender else "N/A",
-            RoleName=user.role.RoleName if user.role else "N/A",
-            DepartmentName=user.department.DepartmentName if user.department else "N/A",
-            PositionName=user.position.PositionName if user.position else "N/A",
-            EmploymentTypeName=user.employment_type.EmploymentTypeName if user.employment_type else "N/A"
-        )
-
-        return response_user
-    except Exception as e:
-        logger.error(f"Error: {e}")  # エラーメッセージを表示
-        raise HTTPException(status_code=500, detail=str(e))
-
 # 従業員情報更新
 @app.put("/admin/users/{user_id}", response_model=schemas.UserDisplay)
 def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db)):

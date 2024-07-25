@@ -198,171 +198,173 @@ const UserDetail = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 flex justify-center mt-8"> {/* ここで上のスペースを追加 */}
+    <div className="min-h-screen bg-gray-100 p-4">
       <ToastContainer />
-      <div className="w-full max-w-2xl">
-        {user && (
-          <div className="overflow-x-auto">
-            <table className="table w-full border-collapse border border-gray-300">
-              <tbody>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">ID</td> {/* ここを修正 */}
-                  <td className="border border-gray-300 p-2">{user.UserID}</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">社員番号</td>
-                  <td className="border border-gray-300 p-2">{user.EmployeeCode}</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">姓</td>
-                  <td className="border border-gray-300 p-2">
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-gray-300"
-                      value={user.LastName}
-                      onChange={(e) => setUser({ ...user, LastName: e.target.value })}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">名</td>
-                  <td className="border border-gray-300 p-2">
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-gray-300"
-                      value={user.FirstName}
-                      onChange={(e) => setUser({ ...user, FirstName: e.target.value })}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">性別</td>
-                  <td className="border border-gray-300 p-2">
-                    <select
-                      className="w-full p-2 border border-gray-300"
-                      value={user.GenderID}
-                      onChange={(e) => setUser({ ...user, GenderID: Number(e.target.value) })}
-                    >
-                      <option value="1">男性</option>
-                      <option value="2">女性</option>
-                      <option value="3">その他</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">ロール</td>
-                  <td className="border border-gray-300 p-2">
-                    <select
-                      className="w-full p-2 border border-gray-300"
-                      value={user.RoleID}
-                      onChange={(e) => setUser({ ...user, RoleID: Number(e.target.value) })}
-                    >
-                      <option value="1">管理者</option>
-                      <option value="2">メンター</option>
-                      <option value="3">メンティー</option>
-                      <option value="4">メンター上司</option>
-                      <option value="5">メンティー上司</option>
-                      <option value="6">人事</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">部署</td>
-                  <td className="border border-gray-300 p-2">
-                    <select
-                      className="w-full p-2 border border-gray-300"
-                      value={user.DepartmentID}
-                      onChange={(e) => setUser({ ...user, DepartmentID: Number(e.target.value) })}
-                    >
-                      <option value="1">セールス</option>
-                      <option value="2">マーケティング</option>
-                      <option value="3">開発</option>
-                      <option value="4">製造</option>
-                      <option value="5">経理</option>
-                      <option value="6">財務</option>
-                      <option value="7">人事</option>
-                      <option value="8">総務</option>
-                      <option value="9">その他</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">役職</td>
-                  <td className="border border-gray-300 p-2">
-                    <select
-                      className="w-full p-2 border border-gray-300"
-                      value={user.PositionID}
-                      onChange={(e) => setUser({ ...user, PositionID: Number(e.target.value) })}
-                    >
-                      <option value="1">一般</option>
-                      <option value="2">主任</option>
-                      <option value="3">課長</option>
-                      <option value="4">次長</option>
-                      <option value="5">部長</option>
-                      <option value="6">取締役</option>
-                      <option value="7">社長</option>
-                      <option value="8">その他</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">雇用形態</td>
-                  <td className="border border-gray-300 p-2">
-                    <select
-                      className="w-full p-2 border border-gray-300"
-                      value={user.EmploymentTypeID}
-                      onChange={(e) => setUser({ ...user, EmploymentTypeID: Number(e.target.value) })}
-                    >
-                      <option value="1">正社員</option>
-                      <option value="2">契約社員</option>
-                      <option value="3">派遣契約</option>
-                      <option value="4">嘱託社員</option>
-                      <option value="5">パートタイム</option>
-                      <option value="6">業務委託</option>
-                      <option value="7">その他</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">生年月日</td>
-                  <td className="border border-gray-300 p-2 bg-gray-100">
-                    <input
-                      type="date"
-                      className="w-full p-2 border border-gray-300 bg-gray-100"
-                      value={user.DateOfBirth}
-                      readOnly
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2 font-semibold">入社日</td>
-                  <td className="border border-gray-300 p-2 bg-gray-100">
-                    <input
-                      type="date"
-                      className="w-full p-2 border border-gray-300 bg-gray-100"
-                      value={user.JoinDate}
-                      readOnly
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div className="flex justify-between mt-4">
-              <button
-                className="w-1/2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                onClick={handleSave}
-              >
-                保存
-              </button>
-              <button
-                className="w-1/2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2"
-                onClick={() => router.push("/admin/users")}
-              >
-                一覧に戻る
-              </button>
+      <div className="flex justify-center mb-4">
+        <div className="w-full max-w-2xl mt-10 p-6">
+          {user && (
+            <div className="overflow-x-auto">
+              <table className="table w-full border-collapse border border-gray-300">
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">ID</td>
+                    <td className="border border-gray-300 bg-gray-200 p-2">{user.UserID}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">社員番号</td>
+                    <td className="border border-gray-300 bg-gray-200 p-2">{user.EmployeeCode}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">姓</td>
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="text"
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={user.LastName}
+                        onChange={(e) => setUser({ ...user, LastName: e.target.value })}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">名</td>
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="text"
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={user.FirstName}
+                        onChange={(e) => setUser({ ...user, FirstName: e.target.value })}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">性別</td>
+                    <td className="border border-gray-300 p-2">
+                      <select
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={user.GenderID}
+                        onChange={(e) => setUser({ ...user, GenderID: Number(e.target.value) })}
+                      >
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                        <option value="3">その他</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">ロール</td>
+                    <td className="border border-gray-300 p-2">
+                      <select
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={user.RoleID}
+                        onChange={(e) => setUser({ ...user, RoleID: Number(e.target.value) })}
+                      >
+                        <option value="1">管理者</option>
+                        <option value="2">メンター</option>
+                        <option value="3">メンティー</option>
+                        <option value="4">メンター上司</option>
+                        <option value="5">メンティー上司</option>
+                        <option value="6">人事</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">部署</td>
+                    <td className="border border-gray-300 p-2">
+                      <select
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={user.DepartmentID}
+                        onChange={(e) => setUser({ ...user, DepartmentID: Number(e.target.value) })}
+                      >
+                        <option value="1">セールス</option>
+                        <option value="2">マーケティング</option>
+                        <option value="3">開発</option>
+                        <option value="4">製造</option>
+                        <option value="5">経理</option>
+                        <option value="6">財務</option>
+                        <option value="7">人事</option>
+                        <option value="8">総務</option>
+                        <option value="9">その他</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">役職</td>
+                    <td className="border border-gray-300 p-2">
+                      <select
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={user.PositionID}
+                        onChange={(e) => setUser({ ...user, PositionID: Number(e.target.value) })}
+                      >
+                        <option value="1">一般</option>
+                        <option value="2">主任</option>
+                        <option value="3">課長</option>
+                        <option value="4">次長</option>
+                        <option value="5">部長</option>
+                        <option value="6">取締役</option>
+                        <option value="7">社長</option>
+                        <option value="8">その他</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">雇用形態</td>
+                    <td className="border border-gray-300 p-2">
+                      <select
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={user.EmploymentTypeID}
+                        onChange={(e) => setUser({ ...user, EmploymentTypeID: Number(e.target.value) })}
+                      >
+                        <option value="1">正社員</option>
+                        <option value="2">契約社員</option>
+                        <option value="3">派遣契約</option>
+                        <option value="4">嘱託社員</option>
+                        <option value="5">パートタイム</option>
+                        <option value="6">業務委託</option>
+                        <option value="7">その他</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">生年月日</td>
+                    <td className="border border-gray-300 p-2 bg-gray-200">
+                      <input
+                        type="date"
+                        className="w-full p-3 bg-gray-200"
+                        value={user.DateOfBirth}
+                        readOnly
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">入社日</td>
+                    <td className="border border-gray-300 p-2 bg-gray-200">
+                      <input
+                        type="date"
+                        className="w-full p-3 bg-gray-200"
+                        value={user.JoinDate}
+                        readOnly
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="flex justify-between mt-4">
+                <button
+                  className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  onClick={handleSave}
+                >
+                  保存
+                </button>
+                <button
+                  className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  onClick={() => router.push("/admin/users")}
+                >
+                  一覧に戻る
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
