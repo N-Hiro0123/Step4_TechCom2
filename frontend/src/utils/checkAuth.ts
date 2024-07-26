@@ -21,6 +21,7 @@ const useCheckAuth = () => {
     const decodedToken = jwtDecode<DecodedToken>(jwt);
     if (!decodedToken || decodedToken.RoleID !== "1") {
       alert("JWTが無効、または、管理者権限がありません。ログインページへ遷移します。");
+      localStorage.removeItem("token");
       router.push("/login");
     }
   }, [router]);
