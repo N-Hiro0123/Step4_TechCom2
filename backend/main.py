@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from DBControl import models, schemas, database
 from typing import List
 
-from DBControl.auth import router as auth_router, get_current_user
+from DBControl.auth import router as auth_router, get_current_user_role
 
 app = FastAPI()
 
@@ -45,10 +45,10 @@ def get_db():
         db.close()
 
 
-# データベース初期化の防止
-database_file = './backend/DBControl/TC_dummy.db'
-if not os.path.exists(database_file):
-    models.Base.metadata.create_all(bind=database.engine)
+# # データベース初期化の防止
+# database_file = './backend/DBControl/TC_dummy.db'
+# if not os.path.exists(database_file):
+#     models.Base.metadata.create_all(bind=database.engine)
 
 
 @app.post("/users/", response_model=schemas.User)
@@ -83,7 +83,10 @@ def read_root():
 
 
 @app.get("/admin/users", response_model=List[schemas.UserDisplay])
-def get_users(db: Session = Depends(get_db)):
+def get_users(
+    db: Session = Depends(get_db),
+    admin_user_RoleID: int = Depends(get_current_user_role),  # 認証用のエンドポイントを追加
+):
     try:
         users_query = (
             db.query(
@@ -128,6 +131,7 @@ def search_users(
     DepartmentName: str = Query(None),
     PositionName: str = Query(None),  # PositionNameを追加
     db: Session = Depends(get_db),
+    admin_user_RoleID: int = Depends(get_current_user_role),  # 認証用のエンドポイントを追加
 ):
     try:
         query = (
@@ -174,7 +178,11 @@ def search_users(
 
 # 従業員情報の取得
 @app.get("/admin/users/{user_id}", response_model=schemas.UserDisplay)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user_RoleID: int = Depends(get_current_user_role),  # 認証用のエンドポイントを追加
+):
     try:
         user = (
             db.query(
@@ -212,7 +220,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 # 従業員情報更新
 @app.put("/admin/users/{user_id}", response_model=schemas.UserDisplay)
-def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db)):
+def update_user(
+    user_id: int,
+    user: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    admin_user_RoleID: int = Depends(get_current_user_role),  # 認証用のエンドポイントを追加
+):
     try:
         db_user = db.query(models.User).filter(models.User.UserID == user_id).first()
         if db_user is None:
