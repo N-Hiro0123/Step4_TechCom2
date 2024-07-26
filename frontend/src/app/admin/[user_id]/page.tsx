@@ -1,9 +1,14 @@
 "use client"; // 追加
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation"; // 修正
+import { useRouter, useParams } from "next/navigation"; // 修正
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { fetchUser } from "./getUser";
+import { fetchTableInfo } from "./getTableInfo";
+import { mappingValue2Key } from "./reverseMapping";
+import { fetchUpdateUser } from "./updateUser";
+import useCheckAuth from "@/utils/checkAuth";
 
 interface User {
   UserID: number;
@@ -17,142 +22,88 @@ interface User {
   DateOfBirth: string;
   JoinDate: string;
   PositionName: string;
-  GenderID: number; // 追加
-  RoleID: number; // 追加
-  DepartmentID: number; // 追加
-  PositionID: number; // 追加
-  EmploymentTypeID: number; // 追加
+  GenderID: string; // 追加
+  RoleID: string; // 追加
+  DepartmentID: string; // 追加
+  PositionID: string; // 追加
+  EmploymentTypeID: string; // 追加
 }
 
 const UserDetail = () => {
+  useCheckAuth(); // ユーザー権限の確認
+
   const router = useRouter();
-  const pathname = usePathname();
-  const user_id = pathname.split("/")[2]; // URL から user_id を取得
+  const params = useParams();
+  const user_id = params.user_id as string;
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [genderIDMap, setGenderIDMap] = useState<{ [key: string]: string }>({});
+  const [roleIDMap, setRoleIDMap] = useState<{ [key: string]: string }>({});
+  const [depertmentIDMap, setDepertmentIDMap] = useState<{ [key: string]: string }>({});
+  const [positionIDMap, setPositionIDMap] = useState<{ [key: string]: string }>({});
+  const [employmentTypeIDMap, setEmploymentTypeIDMap] = useState<{ [key: string]: string }>({});
+  const [isLoadingMap, setIsLoadingMap] = useState(false);
+  const [jwt, setJwt] = useState<string>("");
 
+  // 各テーブル情報を取得する
+  useEffect(() => {
+    fetchTableInfo("genders").then((data) => {
+      setGenderIDMap(data);
+    });
+    fetchTableInfo("positions").then((data) => {
+      setPositionIDMap(data);
+    });
+    fetchTableInfo("departments").then((data) => {
+      setDepertmentIDMap(data);
+    });
+    fetchTableInfo("employmenttypes").then((data) => {
+      setEmploymentTypeIDMap(data);
+    });
+    fetchTableInfo("roles").then((data) => {
+      setRoleIDMap(data);
+    });
+    //トークン情報を取得
+    const token = localStorage.getItem("token") as string;
+    setJwt(token);
+  }, []);
+
+  // すべてのテーブル情報を取得できたことを確認する
+  useEffect(() => {
+    if (
+      Object.keys(genderIDMap).length > 0 &&
+      Object.keys(roleIDMap).length > 0 &&
+      Object.keys(depertmentIDMap).length > 0 &&
+      Object.keys(positionIDMap).length > 0 &&
+      Object.keys(employmentTypeIDMap).length > 0
+    ) {
+      setIsLoadingMap(true);
+      const token = localStorage.getItem("token") as string;
+      setJwt(token);
+      console.log("token", token);
+    }
+  }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
+
+  // すべてのテーブル情報を取得を確認後に、表示に必要なデータを取得する
   useEffect(() => {
     if (user_id) {
-      fetch(`http://127.0.0.1:8000/admin/users/${user_id}`)
-        .then((response) => response.json())
+      fetchUser(user_id, jwt)
         .then((data) => {
           const updatedUser = {
             ...data,
-            GenderID: getGenderID(data.GenderName),
-            RoleID: getRoleID(data.RoleName),
-            DepartmentID: getDepartmentID(data.DepartmentName),
-            PositionID: getPositionID(data.PositionName),
-            EmploymentTypeID: getEmploymentTypeID(data.EmploymentTypeName)
+            GenderID: mappingValue2Key(genderIDMap, data.GenderName),
+            RoleID: mappingValue2Key(roleIDMap, data.RoleName),
+            DepartmentID: mappingValue2Key(depertmentIDMap, data.DepartmentName),
+            PositionID: mappingValue2Key(positionIDMap, data.PositionName),
+            EmploymentTypeID: mappingValue2Key(employmentTypeIDMap, data.EmploymentTypeName),
           };
           setUser(updatedUser);
         })
         .catch((error) => console.error("Error fetching user:", error))
         .finally(() => setIsLoading(false));
     }
-  }, [user_id]);
+  }, [isLoadingMap]);
 
-  const getGenderID = (genderName: string): number => {
-    switch (genderName) {
-      case "男性":
-        return 1;
-      case "女性":
-        return 2;
-      case "その他":
-        return 3;
-      default:
-        return 1;
-    }
-  };
-
-  const getRoleID = (roleName: string): number => {
-    switch (roleName) {
-      case "管理者":
-        return 1;
-      case "メンター":
-        return 2;
-      case "メンティー":
-        return 3;
-      case "メンター上司":
-        return 4;
-      case "メンティー上司":
-        return 5;
-      case "人事":
-        return 6;
-      default:
-        return 1;
-    }
-  };
-
-  const getDepartmentID = (departmentName: string): number => {
-    switch (departmentName) {
-      case "セールス":
-        return 1;
-      case "マーケティング":
-        return 2;
-      case "開発":
-        return 3;
-      case "製造":
-        return 4;
-      case "経理":
-        return 5;
-      case "財務":
-        return 6;
-      case "人事":
-        return 7;
-      case "総務":
-        return 8;
-      case "その他":
-        return 9;
-      default:
-        return 1;
-    }
-  };
-
-  const getPositionID = (positionName: string): number => {
-    switch (positionName) {
-      case "一般":
-        return 1;
-      case "主任":
-        return 2;
-      case "課長":
-        return 3;
-      case "次長":
-        return 4;
-      case "部長":
-        return 5;
-      case "取締役":
-        return 6;
-      case "社長":
-        return 7;
-      case "その他":
-        return 8;
-      default:
-        return 1;
-    }
-  };
-
-  const getEmploymentTypeID = (employmentTypeName: string): number => {
-    switch (employmentTypeName) {
-      case "正社員":
-        return 1;
-      case "契約社員":
-        return 2;
-      case "派遣契約":
-        return 3;
-      case "嘱託社員":
-        return 4;
-      case "パートタイム":
-        return 5;
-      case "業務委託":
-        return 6;
-      case "その他":
-        return 7;
-      default:
-        return 1;
-    }
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (user) {
       const updateUser = {
         LastName: user.LastName,
@@ -165,31 +116,16 @@ const UserDetail = () => {
         PositionID: user.PositionID,
         EmploymentTypeID: user.EmploymentTypeID,
       };
-
-      fetch(`http://127.0.0.1:8000/admin/users/${user.UserID}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateUser),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setUser(data);
-          toast.success("更新が完了しました", {
-            autoClose: 3000,
-            onClose: () => router.push("/admin/users")
-          });
-        })
-        .catch((error) => {
-          console.error("Error updating user:", error);
-          toast.error("保存に失敗しました");
+      try {
+        const updatedUser = await fetchUpdateUser(user.UserID, updateUser, jwt);
+        setUser(updatedUser);
+        toast.success("更新が完了しました", {
+          autoClose: 3000,
+          onClose: () => router.push("/admin/users"),
         });
+      } catch (error) {
+        toast.error("保存に失敗しました");
+      }
     }
   };
 
@@ -242,11 +178,13 @@ const UserDetail = () => {
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.GenderID}
-                        onChange={(e) => setUser({ ...user, GenderID: Number(e.target.value) })}
+                        onChange={(e) => setUser({ ...user, GenderID: String(e.target.value) })}
                       >
-                        <option value="1">男性</option>
-                        <option value="2">女性</option>
-                        <option value="3">その他</option>
+                        {Object.entries(genderIDMap).map(([id, name]) => (
+                          <option key={id} value={id}>
+                            {name}
+                          </option>
+                        ))}
                       </select>
                     </td>
                   </tr>
@@ -256,14 +194,13 @@ const UserDetail = () => {
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.RoleID}
-                        onChange={(e) => setUser({ ...user, RoleID: Number(e.target.value) })}
+                        onChange={(e) => setUser({ ...user, RoleID: String(e.target.value) })}
                       >
-                        <option value="1">管理者</option>
-                        <option value="2">メンター</option>
-                        <option value="3">メンティー</option>
-                        <option value="4">メンター上司</option>
-                        <option value="5">メンティー上司</option>
-                        <option value="6">人事</option>
+                        {Object.entries(roleIDMap).map(([id, name]) => (
+                          <option key={id} value={id}>
+                            {name}
+                          </option>
+                        ))}
                       </select>
                     </td>
                   </tr>
@@ -273,17 +210,18 @@ const UserDetail = () => {
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.DepartmentID}
-                        onChange={(e) => setUser({ ...user, DepartmentID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({
+                            ...user,
+                            DepartmentID: String(e.target.value),
+                          })
+                        }
                       >
-                        <option value="1">セールス</option>
-                        <option value="2">マーケティング</option>
-                        <option value="3">開発</option>
-                        <option value="4">製造</option>
-                        <option value="5">経理</option>
-                        <option value="6">財務</option>
-                        <option value="7">人事</option>
-                        <option value="8">総務</option>
-                        <option value="9">その他</option>
+                        {Object.entries(depertmentIDMap).map(([id, name]) => (
+                          <option key={id} value={id}>
+                            {name}
+                          </option>
+                        ))}
                       </select>
                     </td>
                   </tr>
@@ -293,16 +231,18 @@ const UserDetail = () => {
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.PositionID}
-                        onChange={(e) => setUser({ ...user, PositionID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({
+                            ...user,
+                            PositionID: String(e.target.value),
+                          })
+                        }
                       >
-                        <option value="1">一般</option>
-                        <option value="2">主任</option>
-                        <option value="3">課長</option>
-                        <option value="4">次長</option>
-                        <option value="5">部長</option>
-                        <option value="6">取締役</option>
-                        <option value="7">社長</option>
-                        <option value="8">その他</option>
+                        {Object.entries(positionIDMap).map(([id, name]) => (
+                          <option key={id} value={id}>
+                            {name}
+                          </option>
+                        ))}
                       </select>
                     </td>
                   </tr>
@@ -312,53 +252,40 @@ const UserDetail = () => {
                       <select
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         value={user.EmploymentTypeID}
-                        onChange={(e) => setUser({ ...user, EmploymentTypeID: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setUser({
+                            ...user,
+                            EmploymentTypeID: String(e.target.value),
+                          })
+                        }
                       >
-                        <option value="1">正社員</option>
-                        <option value="2">契約社員</option>
-                        <option value="3">派遣契約</option>
-                        <option value="4">嘱託社員</option>
-                        <option value="5">パートタイム</option>
-                        <option value="6">業務委託</option>
-                        <option value="7">その他</option>
+                        {Object.entries(employmentTypeIDMap).map(([id, name]) => (
+                          <option key={id} value={id}>
+                            {name}
+                          </option>
+                        ))}
                       </select>
                     </td>
                   </tr>
                   <tr>
                     <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">生年月日</td>
                     <td className="border border-gray-300 p-2 bg-gray-200">
-                      <input
-                        type="date"
-                        className="w-full p-3 bg-gray-200"
-                        value={user.DateOfBirth}
-                        readOnly
-                      />
+                      <input type="date" className="w-full p-3 bg-gray-200" value={user.DateOfBirth} readOnly />
                     </td>
                   </tr>
                   <tr>
                     <td className="border border-gray-300 p-2 bg-gray-500 text-gray-200 font-semibold">入社日</td>
                     <td className="border border-gray-300 p-2 bg-gray-200">
-                      <input
-                        type="date"
-                        className="w-full p-3 bg-gray-200"
-                        value={user.JoinDate}
-                        readOnly
-                      />
+                      <input type="date" className="w-full p-3 bg-gray-200" value={user.JoinDate} readOnly />
                     </td>
                   </tr>
                 </tbody>
               </table>
               <div className="flex justify-between mt-4">
-                <button
-                  className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  onClick={handleSave}
-                >
+                <button className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={handleSave}>
                   保存
                 </button>
-                <button
-                  className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  onClick={() => router.push("/admin/users")}
-                >
+                <button className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={() => router.push("/admin/users")}>
                   一覧に戻る
                 </button>
               </div>

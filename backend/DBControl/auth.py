@@ -49,7 +49,7 @@ def create_access_token(data: dict, expires_time: int):
     return encoded_jwt
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user_role(token: str = Depends(oauth2_scheme)):
     # UserIDが確認できない時の例外処理
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -81,7 +81,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         print("JWT Error:", e)
         raise credentials_exception
 
-    return token_data.UserID
+    return token_data.RoleID
 
 
 # ルーター設定
@@ -113,17 +113,3 @@ async def login_for_access_token(form_data: schemas.UserPass, db: Session = Depe
         expires_time=ACCESS_TOKEN_EXPIRE_MINUTES,  # 60
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
-
-# JWTからuser_idを取り出す際の参考コード
-# @router.get("/user-info", response_model=schemas.UserInfoAll)
-# async def read_user_info(user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
-
-#     # token_data.user_idを使ってユーザー情報を取得
-#     mymodel = mymodels.UserDatas
-#     stmt = select(mymodel).where(mymodel.user_id == user_id)
-
-#     user = db.execute(stmt).scalars().first()
-#     if user is None:
-#         return None
-#     return schemas.UserInfoAll(user_id=user.user_id, UserID=user.user_name)

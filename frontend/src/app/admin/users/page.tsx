@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { fetchAllUsers } from "./getAllUsers";
+import { fetchUserSearch } from "./getUserSearch";
+import { fetchTableInfo } from "./getTableInfo";
+import useCheckAuth from "@/utils/checkAuth";
 
 interface User {
   UserID: number;
@@ -18,10 +22,17 @@ interface User {
   PositionName: string;
 }
 
+interface DecodedToken {
+  UserID: string;
+  RoleID: string;
+}
+
 // 一覧表の1ページ当たりの表示行数
 const USERS_PER_PAGE = 15;
 
 export default function Users() {
+  useCheckAuth(); // ユーザー権限の確認
+
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,14 +45,55 @@ export default function Users() {
     employmentTypeName: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [genderIDMap, setGenderIDMap] = useState<{ [key: string]: string }>({});
+  const [roleIDMap, setRoleIDMap] = useState<{ [key: string]: string }>({});
+  const [depertmentIDMap, setDepertmentIDMap] = useState<{ [key: string]: string }>({});
+  const [positionIDMap, setPositionIDMap] = useState<{ [key: string]: string }>({});
+  const [employmentTypeIDMap, setEmploymentTypeIDMap] = useState<{ [key: string]: string }>({});
+  const [isLoadingMap, setIsLoadingMap] = useState(false);
+  const [jwt, setJwt] = useState<string>("");
+
+  // 各テーブル情報を取得する
+  useEffect(() => {
+    fetchTableInfo("genders").then((data) => {
+      setGenderIDMap(data);
+    });
+    fetchTableInfo("positions").then((data) => {
+      setPositionIDMap(data);
+    });
+    fetchTableInfo("departments").then((data) => {
+      setDepertmentIDMap(data);
+    });
+    fetchTableInfo("employmenttypes").then((data) => {
+      setEmploymentTypeIDMap(data);
+    });
+    fetchTableInfo("roles").then((data) => {
+      setRoleIDMap(data);
+    });
+    //トークン情報を取得
+    const token = localStorage.getItem("token") as string;
+    setJwt(token);
+  }, []);
+
+  // すべてのテーブル情報を取得できたことを確認する
+  useEffect(() => {
+    if (
+      Object.keys(genderIDMap).length > 0 &&
+      Object.keys(roleIDMap).length > 0 &&
+      Object.keys(depertmentIDMap).length > 0 &&
+      Object.keys(positionIDMap).length > 0 &&
+      Object.keys(employmentTypeIDMap).length > 0
+    ) {
+      setIsLoadingMap(true);
+    }
+  }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/admin/users")
-      .then((response) => response.json())
+    fetchAllUsers(jwt)
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [isLoadingMap]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -52,8 +104,7 @@ export default function Users() {
     if (searchParams.positionName) params.append("PositionName", searchParams.positionName);
     if (searchParams.employmentTypeName) params.append("EmploymentTypeName", searchParams.employmentTypeName);
 
-    fetch(`http://127.0.0.1:8000/admin/users/search?${params.toString()}`)
-      .then((response) => response.json())
+    fetchUserSearch(params, jwt)
       .then((data) => {
         setUsers(data);
         if (data.length === 0) {
@@ -61,8 +112,7 @@ export default function Users() {
             position: "top-center",
             autoClose: 3000,
             onClose: () => {
-              fetch("http://127.0.0.1:8000/admin/users")
-                .then((response) => response.json())
+              fetchAllUsers(jwt)
                 .then((data) => setUsers(data))
                 .catch((error) => console.error("Error fetching users:", error));
             },
@@ -85,8 +135,7 @@ export default function Users() {
       positionName: "",
       employmentTypeName: "",
     });
-    fetch("http://127.0.0.1:8000/admin/users")
-      .then((response) => response.json())
+    fetchAllUsers(jwt)
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error));
   };
@@ -95,10 +144,12 @@ export default function Users() {
     setCurrentPage(pageNumber);
   };
 
-  const paginatedUsers = users.slice(
-    (currentPage - 1) * USERS_PER_PAGE,
-    currentPage * USERS_PER_PAGE
-  );
+  const paginatedUsers = users.slice((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -109,6 +160,12 @@ export default function Users() {
   return (
     <div className="min-h-screen bg-gray-200 p-4">
       <ToastContainer />
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">従業員一覧</h1>
+        <button className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" onClick={handleLogout}>
+          ログアウト
+        </button>
+      </div>
       <div className="flex flex-col lg:flex-row mb-4">
         <div className="w-full lg:w-1/4 p-4 mt-10">
           <input
@@ -131,12 +188,11 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, roleName: e.target.value })}
           >
             <option value="">ロールを選択</option>
-            <option value="管理者">管理者</option>
-            <option value="メンター">メンター</option>
-            <option value="メンティー">メンティー</option>
-            <option value="メンター上司">メンター上司</option>
-            <option value="メンティー上司">メンティー上司</option>
-            <option value="人事">人事</option>
+            {Object.values(roleIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <select
             className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -144,15 +200,11 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, departmentName: e.target.value })}
           >
             <option value="">部署を選択</option>
-            <option value="セールス">セールス</option>
-            <option value="マーケティング">マーケティング</option>
-            <option value="開発">開発</option>
-            <option value="製造">製造</option>
-            <option value="経理">経理</option>
-            <option value="財務">財務</option>
-            <option value="人事">人事</option>
-            <option value="総務">総務</option>
-            <option value="その他">その他</option>
+            {Object.values(depertmentIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <select
             className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -160,14 +212,11 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, positionName: e.target.value })}
           >
             <option value="">役職を選択</option>
-            <option value="一般">一般</option>
-            <option value="主任">主任</option>
-            <option value="課長">課長</option>
-            <option value="次長">次長</option>
-            <option value="部長">部長</option>
-            <option value="取締役">取締役</option>
-            <option value="社長">社長</option>
-            <option value="その他">その他</option>
+            {Object.values(positionIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <select
             className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -175,25 +224,17 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, employmentTypeName: e.target.value })}
           >
             <option value="">雇用形態を選択</option>
-            <option value="正社員">正社員</option>
-            <option value="契約社員">契約社員</option>
-            <option value="派遣契約">派遣契約</option>
-            <option value="嘱託社員">嘱託社員</option>
-            <option value="パートタイム">パートタイム</option>
-            <option value="業務委託">業務委託</option>
-            <option value="その他">その他</option>
+            {Object.values(employmentTypeIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <div className="flex justify-between">
-            <button
-              className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              onClick={handleSearch}
-            >
+            <button className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={handleSearch}>
               検索
             </button>
-            <button
-              className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              onClick={handleResetSearch}
-            >
+            <button className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={handleResetSearch}>
               全従業員を表示
             </button>
           </div>
@@ -218,11 +259,7 @@ export default function Users() {
               </thead>
               <tbody>
                 {paginatedUsers.map((user) => (
-                  <tr
-                    key={user.UserID}
-                    className="hover:bg-gray-100 cursor-pointer"
-                    onDoubleClick={() => handleRowDoubleClick(user.UserID)}
-                  >
+                  <tr key={user.UserID} className="hover:bg-gray-100 cursor-pointer" onDoubleClick={() => handleRowDoubleClick(user.UserID)}>
                     <td className="border border-gray-300 p-2">{user.UserID}</td>
                     <td className="border border-gray-300 p-2">{user.EmployeeCode}</td>
                     <td className="border border-gray-300 p-2">{user.LastName}</td>
@@ -243,7 +280,7 @@ export default function Users() {
             {[...Array(totalPages)].map((_, index) => (
               <button
                 key={index}
-                className={`px-4 py-2 mx-1 border rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'}`}
+                className={`px-4 py-2 mx-1 border rounded ${currentPage === index + 1 ? "bg-blue-500 text-white" : "bg-white text-gray-700"}`}
                 onClick={() => handlePageChange(index + 1)}
               >
                 {index + 1}
