@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { fetchAllUsers } from "./getAllUsers";
 import { fetchUserSearch } from "./getUserSearch";
 import { fetchTableInfo } from "./getTableInfo";
+import useCheckAuth from "@/utils/checkAuth";
 
 interface User {
   UserID: number;
@@ -21,10 +22,17 @@ interface User {
   PositionName: string;
 }
 
+interface DecodedToken {
+  UserID: string;
+  RoleID: string;
+}
+
 // 一覧表の1ページ当たりの表示行数
 const USERS_PER_PAGE = 15;
 
 export default function Users() {
+  useCheckAuth(); // ユーザー権限の確認
+
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);

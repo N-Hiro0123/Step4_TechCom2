@@ -8,6 +8,7 @@ import { fetchUser } from "./getUser";
 import { fetchTableInfo } from "./getTableInfo";
 import { mappingValue2Key } from "./reverseMapping";
 import { fetchUpdateUser } from "./updateUser";
+import useCheckAuth from "@/utils/checkAuth";
 
 interface User {
   UserID: number;
@@ -29,6 +30,8 @@ interface User {
 }
 
 const UserDetail = () => {
+  useCheckAuth(); // ユーザー権限の確認
+
   const router = useRouter();
   const params = useParams();
   const user_id = params.user_id as string;
