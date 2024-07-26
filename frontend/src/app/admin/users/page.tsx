@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { fetchAllUsers } from "./getAllUsers";
 import { fetchUserSearch } from "./getUserSearch";
+import { fetchTableInfo } from "./getTableInfo";
 
 interface User {
   UserID: number;
@@ -36,13 +37,51 @@ export default function Users() {
     employmentTypeName: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [genderIDMap, setGenderIDMap] = useState<{ [key: string]: string }>({});
+  const [roleIDMap, setRoleIDMap] = useState<{ [key: string]: string }>({});
+  const [depertmentIDMap, setDepertmentIDMap] = useState<{ [key: string]: string }>({});
+  const [positionIDMap, setPositionIDMap] = useState<{ [key: string]: string }>({});
+  const [employmentTypeIDMap, setEmploymentTypeIDMap] = useState<{ [key: string]: string }>({});
+  const [isLoadingMap, setIsLoadingMap] = useState(false);
+
+  // 各テーブル情報を取得する
+  useEffect(() => {
+    fetchTableInfo("genders").then((data) => {
+      setGenderIDMap(data);
+    });
+    fetchTableInfo("positions").then((data) => {
+      setPositionIDMap(data);
+    });
+    fetchTableInfo("departments").then((data) => {
+      setDepertmentIDMap(data);
+    });
+    fetchTableInfo("employmenttypes").then((data) => {
+      setEmploymentTypeIDMap(data);
+    });
+    fetchTableInfo("roles").then((data) => {
+      setRoleIDMap(data);
+    });
+  }, []);
+
+  // すべてのテーブル情報を取得できたことを確認する
+  useEffect(() => {
+    if (
+      Object.keys(genderIDMap).length > 0 &&
+      Object.keys(roleIDMap).length > 0 &&
+      Object.keys(depertmentIDMap).length > 0 &&
+      Object.keys(positionIDMap).length > 0 &&
+      Object.keys(employmentTypeIDMap).length > 0
+    ) {
+      setIsLoadingMap(true);
+    }
+  }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
 
   useEffect(() => {
     fetchAllUsers()
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [isLoadingMap]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -126,12 +165,11 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, roleName: e.target.value })}
           >
             <option value="">ロールを選択</option>
-            <option value="管理者">管理者</option>
-            <option value="メンター">メンター</option>
-            <option value="メンティー">メンティー</option>
-            <option value="メンター上司">メンター上司</option>
-            <option value="メンティー上司">メンティー上司</option>
-            <option value="人事">人事</option>
+            {Object.values(roleIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <select
             className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -139,15 +177,11 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, departmentName: e.target.value })}
           >
             <option value="">部署を選択</option>
-            <option value="セールス">セールス</option>
-            <option value="マーケティング">マーケティング</option>
-            <option value="開発">開発</option>
-            <option value="製造">製造</option>
-            <option value="経理">経理</option>
-            <option value="財務">財務</option>
-            <option value="人事">人事</option>
-            <option value="総務">総務</option>
-            <option value="その他">その他</option>
+            {Object.values(depertmentIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <select
             className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -155,14 +189,11 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, positionName: e.target.value })}
           >
             <option value="">役職を選択</option>
-            <option value="一般">一般</option>
-            <option value="主任">主任</option>
-            <option value="課長">課長</option>
-            <option value="次長">次長</option>
-            <option value="部長">部長</option>
-            <option value="取締役">取締役</option>
-            <option value="社長">社長</option>
-            <option value="その他">その他</option>
+            {Object.values(positionIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <select
             className="w-full mb-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -170,13 +201,11 @@ export default function Users() {
             onChange={(e) => setSearchParams({ ...searchParams, employmentTypeName: e.target.value })}
           >
             <option value="">雇用形態を選択</option>
-            <option value="正社員">正社員</option>
-            <option value="契約社員">契約社員</option>
-            <option value="派遣契約">派遣契約</option>
-            <option value="嘱託社員">嘱託社員</option>
-            <option value="パートタイム">パートタイム</option>
-            <option value="業務委託">業務委託</option>
-            <option value="その他">その他</option>
+            {Object.values(employmentTypeIDMap).map((element) => (
+              <option key={element} value={element}>
+                {element}
+              </option>
+            ))}
           </select>
           <div className="flex justify-between">
             <button className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={handleSearch}>

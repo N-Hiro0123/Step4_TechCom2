@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import { fetchToken } from "./getToken";
 
 // JWTのペイロードに含まれる情報の型を定義
 interface DecodedToken {
@@ -22,9 +23,7 @@ const Login = () => {
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     // ハッシュを16進数文字列に変換
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
     return hashHex;
   };
 
@@ -34,23 +33,8 @@ const Login = () => {
     const hashedPassword = await hashPassword(Password);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/token",
-        // process.env.NEXT_PUBLIC_API_ENDPOINT + `/token`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            UserID: UserID,
-            Password: hashedPassword,
-          }),
-        }
-      );
-
-      if (response.status === 200) {
-        const data = await response.json();
+      const data = await fetchToken(UserID, hashedPassword);
+      if (data) {
         const token = data["access_token"];
         localStorage.setItem("token", token); // JWTをローカルストレージに保存
 
@@ -81,25 +65,13 @@ const Login = () => {
               <label className="label">
                 <span className="label-text">UserID</span>
               </label>
-              <input
-                type="text"
-                placeholder="UserID"
-                className="input input-bordered"
-                value={UserID}
-                onChange={(e) => setUserID(e.target.value)}
-              />
+              <input type="text" placeholder="UserID" className="input input-bordered" value={UserID} onChange={(e) => setUserID(e.target.value)} />
             </div>
             <div className="form-control mb-4">
               <label className="label">
                 <span className="label-text">Password</span>
               </label>
-              <input
-                type="password"
-                placeholder="Password"
-                className="input input-bordered"
-                value={Password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <input type="password" placeholder="Password" className="input input-bordered" value={Password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <div className="form-control mt-6">
               <button type="submit" className="btn btn-primary">
