@@ -146,6 +146,11 @@ export default function Users() {
 
   const paginatedUsers = users.slice((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -155,6 +160,12 @@ export default function Users() {
   return (
     <div className="min-h-screen bg-gray-200 p-4">
       <ToastContainer />
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">従業員一覧</h1>
+        <button className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" onClick={handleLogout}>
+          ログアウト
+        </button>
+      </div>
       <div className="flex flex-col lg:flex-row mb-4">
         <div className="w-full lg:w-1/4 p-4 mt-10">
           <input
