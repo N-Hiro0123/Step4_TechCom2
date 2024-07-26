@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { fetchAllUsers } from "./getAllUsers";
+import { fetchUserSearch } from "./getUserSearch";
 
 interface User {
   UserID: number;
@@ -36,8 +38,7 @@ export default function Users() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/admin/users")
-      .then((response) => response.json())
+    fetchAllUsers()
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error))
       .finally(() => setIsLoading(false));
@@ -52,8 +53,7 @@ export default function Users() {
     if (searchParams.positionName) params.append("PositionName", searchParams.positionName);
     if (searchParams.employmentTypeName) params.append("EmploymentTypeName", searchParams.employmentTypeName);
 
-    fetch(`http://127.0.0.1:8000/admin/users/search?${params.toString()}`)
-      .then((response) => response.json())
+    fetchUserSearch(params)
       .then((data) => {
         setUsers(data);
         if (data.length === 0) {
@@ -61,8 +61,7 @@ export default function Users() {
             position: "top-center",
             autoClose: 3000,
             onClose: () => {
-              fetch("http://127.0.0.1:8000/admin/users")
-                .then((response) => response.json())
+              fetchAllUsers()
                 .then((data) => setUsers(data))
                 .catch((error) => console.error("Error fetching users:", error));
             },
@@ -85,8 +84,7 @@ export default function Users() {
       positionName: "",
       employmentTypeName: "",
     });
-    fetch("http://127.0.0.1:8000/admin/users")
-      .then((response) => response.json())
+    fetchAllUsers()
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error));
   };
@@ -95,10 +93,7 @@ export default function Users() {
     setCurrentPage(pageNumber);
   };
 
-  const paginatedUsers = users.slice(
-    (currentPage - 1) * USERS_PER_PAGE,
-    currentPage * USERS_PER_PAGE
-  );
+  const paginatedUsers = users.slice((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -184,16 +179,10 @@ export default function Users() {
             <option value="その他">その他</option>
           </select>
           <div className="flex justify-between">
-            <button
-              className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              onClick={handleSearch}
-            >
+            <button className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={handleSearch}>
               検索
             </button>
-            <button
-              className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              onClick={handleResetSearch}
-            >
+            <button className="w-1/2 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-400" onClick={handleResetSearch}>
               全従業員を表示
             </button>
           </div>
@@ -218,11 +207,7 @@ export default function Users() {
               </thead>
               <tbody>
                 {paginatedUsers.map((user) => (
-                  <tr
-                    key={user.UserID}
-                    className="hover:bg-gray-100 cursor-pointer"
-                    onDoubleClick={() => handleRowDoubleClick(user.UserID)}
-                  >
+                  <tr key={user.UserID} className="hover:bg-gray-100 cursor-pointer" onDoubleClick={() => handleRowDoubleClick(user.UserID)}>
                     <td className="border border-gray-300 p-2">{user.UserID}</td>
                     <td className="border border-gray-300 p-2">{user.EmployeeCode}</td>
                     <td className="border border-gray-300 p-2">{user.LastName}</td>
@@ -243,7 +228,7 @@ export default function Users() {
             {[...Array(totalPages)].map((_, index) => (
               <button
                 key={index}
-                className={`px-4 py-2 mx-1 border rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'}`}
+                className={`px-4 py-2 mx-1 border rounded ${currentPage === index + 1 ? "bg-blue-500 text-white" : "bg-white text-gray-700"}`}
                 onClick={() => handlePageChange(index + 1)}
               >
                 {index + 1}
