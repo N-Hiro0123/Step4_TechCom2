@@ -1,6 +1,6 @@
 export const fetchTableInfo = async (path: string) => {
   try {
-    const response = await fetch(`http://127.0.0.1:8000/${path}`);
+    const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT + `/${path}`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }

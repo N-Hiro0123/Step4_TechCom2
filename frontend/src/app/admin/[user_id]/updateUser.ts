@@ -1,6 +1,6 @@
 export const fetchUpdateUser = async (userID: number, updateUser: any) => {
   try {
-    const response = await fetch(`http://127.0.0.1:8000/admin/users/${userID}`, {
+    const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT + `/admin/users/${userID}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

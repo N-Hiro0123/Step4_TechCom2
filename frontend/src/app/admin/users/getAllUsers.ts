@@ -1,6 +1,6 @@
 export const fetchAllUsers = async () => {
   try {
-    const response = await fetch("http://127.0.0.1:8000/admin/users");
+    const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT + "/admin/users");
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }

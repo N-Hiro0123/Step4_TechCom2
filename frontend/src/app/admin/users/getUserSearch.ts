@@ -1,5 +1,5 @@
 export const fetchUserSearch = async (params: URLSearchParams) => {
-  const response = await fetch(`http://127.0.0.1:8000/admin/users/search?${params.toString()}`);
+  const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT + `/admin/users/search?${params.toString()}`);
   if (!response.ok) {
     throw new Error("Network response was not ok");
   }
