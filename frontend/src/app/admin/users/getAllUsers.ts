@@ -1,6 +1,8 @@
-export const fetchAllUsers = async () => {
+export const fetchAllUsers = async (jwt: string) => {
   try {
-    const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT + "/admin/users");
+    const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT + "/admin/users", {
+      headers: { Authorization: `Bearer ${jwt}` },
+    });
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }

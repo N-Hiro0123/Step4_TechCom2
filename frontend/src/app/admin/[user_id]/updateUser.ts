@@ -1,9 +1,10 @@
-export const fetchUpdateUser = async (userID: number, updateUser: any) => {
+export const fetchUpdateUser = async (userID: number, updateUser: any, jwt: string) => {
   try {
     const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT + `/admin/users/${userID}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
       },
       body: JSON.stringify(updateUser),
     });

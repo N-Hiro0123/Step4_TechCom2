@@ -51,6 +51,7 @@ export default function Users() {
   const [positionIDMap, setPositionIDMap] = useState<{ [key: string]: string }>({});
   const [employmentTypeIDMap, setEmploymentTypeIDMap] = useState<{ [key: string]: string }>({});
   const [isLoadingMap, setIsLoadingMap] = useState(false);
+  const [jwt, setJwt] = useState<string>("");
 
   // 各テーブル情報を取得する
   useEffect(() => {
@@ -69,6 +70,9 @@ export default function Users() {
     fetchTableInfo("roles").then((data) => {
       setRoleIDMap(data);
     });
+    //トークン情報を取得
+    const token = localStorage.getItem("token") as string;
+    setJwt(token);
   }, []);
 
   // すべてのテーブル情報を取得できたことを確認する
@@ -85,7 +89,7 @@ export default function Users() {
   }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
 
   useEffect(() => {
-    fetchAllUsers()
+    fetchAllUsers(jwt)
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error))
       .finally(() => setIsLoading(false));
@@ -100,7 +104,7 @@ export default function Users() {
     if (searchParams.positionName) params.append("PositionName", searchParams.positionName);
     if (searchParams.employmentTypeName) params.append("EmploymentTypeName", searchParams.employmentTypeName);
 
-    fetchUserSearch(params)
+    fetchUserSearch(params, jwt)
       .then((data) => {
         setUsers(data);
         if (data.length === 0) {
@@ -108,7 +112,7 @@ export default function Users() {
             position: "top-center",
             autoClose: 3000,
             onClose: () => {
-              fetchAllUsers()
+              fetchAllUsers(jwt)
                 .then((data) => setUsers(data))
                 .catch((error) => console.error("Error fetching users:", error));
             },
@@ -131,7 +135,7 @@ export default function Users() {
       positionName: "",
       employmentTypeName: "",
     });
-    fetchAllUsers()
+    fetchAllUsers(jwt)
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error));
   };

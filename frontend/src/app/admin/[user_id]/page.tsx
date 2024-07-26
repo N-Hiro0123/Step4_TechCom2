@@ -43,6 +43,7 @@ const UserDetail = () => {
   const [positionIDMap, setPositionIDMap] = useState<{ [key: string]: string }>({});
   const [employmentTypeIDMap, setEmploymentTypeIDMap] = useState<{ [key: string]: string }>({});
   const [isLoadingMap, setIsLoadingMap] = useState(false);
+  const [jwt, setJwt] = useState<string>("");
 
   // 各テーブル情報を取得する
   useEffect(() => {
@@ -61,6 +62,9 @@ const UserDetail = () => {
     fetchTableInfo("roles").then((data) => {
       setRoleIDMap(data);
     });
+    //トークン情報を取得
+    const token = localStorage.getItem("token") as string;
+    setJwt(token);
   }, []);
 
   // すべてのテーブル情報を取得できたことを確認する
@@ -73,13 +77,16 @@ const UserDetail = () => {
       Object.keys(employmentTypeIDMap).length > 0
     ) {
       setIsLoadingMap(true);
+      const token = localStorage.getItem("token") as string;
+      setJwt(token);
+      console.log("token", token);
     }
   }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
 
   // すべてのテーブル情報を取得を確認後に、表示に必要なデータを取得する
   useEffect(() => {
     if (user_id) {
-      fetchUser(user_id)
+      fetchUser(user_id, jwt)
         .then((data) => {
           const updatedUser = {
             ...data,
@@ -110,7 +117,7 @@ const UserDetail = () => {
         EmploymentTypeID: user.EmploymentTypeID,
       };
       try {
-        const updatedUser = await fetchUpdateUser(user.UserID, updateUser);
+        const updatedUser = await fetchUpdateUser(user.UserID, updateUser, jwt);
         setUser(updatedUser);
         toast.success("更新が完了しました", {
           autoClose: 3000,
