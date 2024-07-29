@@ -124,7 +124,7 @@ export default function Users() {
       .catch((error) => console.error("Error searching users:", error));
   };
 
-  const handleRowDoubleClick = (userID: number): void => {
+  const handleRowClick = (userID: number): void => {
     router.push(`/admin/${userID}`);
   };
 
@@ -261,7 +261,7 @@ export default function Users() {
               </thead>
               <tbody>
                 {paginatedUsers.map((user) => (
-                  <tr key={user.UserID} className="hover:bg-gray-100 cursor-pointer" onDoubleClick={() => handleRowDoubleClick(user.UserID)}>
+                  <tr key={user.UserID} className="hover:bg-gray-100 cursor-pointer" onClick={() => handleRowClick(user.UserID)}>
                     <td className="border border-gray-300 p-2">{user.UserID}</td>
                     <td className="border border-gray-300 p-2">{user.EmployeeCode}</td>
                     <td className="border border-gray-300 p-2">{user.LastName}</td>
