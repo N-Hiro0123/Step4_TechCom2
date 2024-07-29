@@ -89,10 +89,12 @@ export default function Users() {
   }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
 
   useEffect(() => {
-    fetchAllUsers(jwt)
-      .then((data) => setUsers(data))
-      .catch((error) => console.error("Error fetching users:", error))
-      .finally(() => setIsLoading(false));
+    if (isLoadingMap) {
+      fetchAllUsers(jwt)
+        .then((data) => setUsers(data))
+        .catch((error) => console.error("Error fetching users:", error))
+        .finally(() => setIsLoading(false));
+    }
   }, [isLoadingMap]);
 
   const handleSearch = () => {
