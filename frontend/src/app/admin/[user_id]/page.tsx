@@ -79,13 +79,12 @@ const UserDetail = () => {
       setIsLoadingMap(true);
       const token = localStorage.getItem("token") as string;
       setJwt(token);
-      console.log("token", token);
     }
   }, [genderIDMap, roleIDMap, depertmentIDMap, positionIDMap, employmentTypeIDMap]);
 
   // すべてのテーブル情報を取得を確認後に、表示に必要なデータを取得する
   useEffect(() => {
-    if (user_id) {
+    if (user_id && isLoadingMap) {
       fetchUser(user_id, jwt)
         .then((data) => {
           const updatedUser = {
